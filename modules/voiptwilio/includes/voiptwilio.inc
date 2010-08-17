@@ -23,8 +23,8 @@ foreach (array('twilio.php') as $file) {
  *
  * @param string $response_action set to the action to be executed in response
  *  to a previously issued request to Twilio.  Is only valid with $call_id
- *  is not NULL.  It can assume any of the following values: process_dial,
- *  process_gather, and process_record.
+ *  is not NULL.  It can assume any of the following values: process_conference,
+ *  process_dial, process_get_input, and process_record.
  *
  * @return void
  */
@@ -171,11 +171,12 @@ $vars = array();
         voipcall_processing_error('voiptwilio', $call, $msg, $params);
         return FALSE;
         break;
+      case 'process_conference':
       case 'process_dial':
         // nothing special to be done here. dial_status has already been 
         // updated a few lines above
         break;
-      case 'process_gather':
+      case 'process_get_input':
         $call['script']->setVar('input_digits', $_REQUEST['Digits']);
         break;
       case 'process_record':
@@ -284,15 +285,17 @@ watchdog('voiptwilio', $msg, array(), WATCHDOG_INFO);
           $action = url($response_url, array('absolute' => TRUE));
           $method = 'POST';
           $number = $script->evalString($cmd->getParam('number'));
-          // TODO: implement the other features such as multi-dial, url and sendDigits?
+          // TODO: implement the other features such as multi-dial, url(for private scripts) and sendDigits?
           $timeout = $script->evalString($cmd->getParam('timeout', 30));
-          // TODO: implement the hangupOnStar feature?
+          $hangup_on_star =  $script->evalString($cmd->getParam('hangup_on_star', false));
+          $hangup_on_star =  $hangup_on_star? 'true':'false';
           $time_limit = $script->evalString($cmd->getParam('time_limit', '14400'));
           $caller_number = $script->evalString($script->getVar('caller_number'));
           $caller_id = $script->evalString($cmd->getParam('caller_id', $caller_number)); 
           $response .= '<Dial action="' . $action
                             . '" method="' . $method
                             . '" timeout="' . $timeout
+                            . '" hangupOnStar="' . $hangup_on_star
                             . '" timeLimit="' . $time_limit
                             . '" callerId="' . $caller_id
                             . '" >';
@@ -305,7 +308,7 @@ watchdog('voiptwilio', $msg, array(), WATCHDOG_INFO);
         case 'VoipCmdGetInput':
           $menu_path = 'voip/twilio/callhandler';
           $call_id = $script->evalString($script->getVar('call_id'));
-          $response_url = $menu_path . '/' . $call_id . '/process_gather';
+          $response_url = $menu_path . '/' . $call_id . '/process_get_input';
           $action = url($response_url, array('absolute' => TRUE));
           $method = 'POST';
           $timeout = $script->evalString($cmd->getParam('timeout', 5)); 
@@ -387,6 +390,42 @@ watchdog('voiptwilio', $msg, array(), WATCHDOG_INFO);
           // Note: this will trigger a response from Twilio with CallStatus = complete
           $response .= '<Hangup/>';
           $processing = FALSE;
+          break;
+
+        case 'VoipCmdJoinConference';
+          $menu_path = 'voip/twilio/callhandler';
+          $call_id = $script->evalString($script->getVar('call_id'));
+          $response_url = $menu_path . '/' . $call_id . '/process_conference';
+          $action = url($response_url, array('absolute' => TRUE));
+          $method = 'POST';
+          $room = $script->evalString($cmd->getParam('room'));
+          $muted =  $script->evalString($cmd->getParam('muted', false));
+          $muted =  $muted? 'true':'false';
+          $beep =  $script->evalString($cmd->getParam('beep', false));
+          $beep =  $beep? 'true':'false';
+          $start_on_enter =  $script->evalString($cmd->getParam('start_on_enter', false));
+          $start_on_enter =  $start_on_enter? 'true':'false';
+          $end_on_exit =  $script->evalString($cmd->getParam('end_on_exit', false));
+          $end_on_exit =  $end_on_exit? 'true':'false';
+          $wait_url =  $script->evalString($cmd->getParam('wait_url', ''));
+          $hangup_on_star =  $script->evalString($cmd->getParam('hangup_on_star', false));
+          $hangup_on_star =  $hangup_on_star? 'true':'false';
+          $time_limit = $script->evalString($cmd->getParam('time_limit', '3600'));
+          $response .= '<Dial action="' . $action
+                            . '" method="' . $method
+                            . '" muted="' . $muted
+                            . '" beep="' . $beep
+                            . '" startConferenceOnEnter="' . $start_on_enter
+                            . '" endConferenceOnExit="' . $end_on_exit
+                            . '" waitUrl="' . $wait_url
+                            . '" hangupOnStar="' . $hangup_on_star
+                            . '" timeLimit="' . $time_limit
+                            . '" >';
+          $response .= $room;
+          $response .= '</Dial>';
+          $rc = TRUE;
+          $processing = FALSE;
+watchdog('voiptwilio', "New response: $response");
           break;
 
         case 'VoipCmdLabel':

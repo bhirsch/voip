@@ -106,11 +106,11 @@ class VoipScript {
    * Supported script commands
    */
 
-  function addDial($number, $timeout=30, $hangup_key='*', $max_length=3600, $caller_id=''){
+  function addDial($number, $timeout=30, $hangup_on_star=false, $time_limit=3600, $caller_id=''){
     $params['number'] = $number;
     $params['timeout'] = $timeout;
-    $params['hangup_key'] = $hangup_key;
-    $params['max_length'] = $max_length;
+    $params['hangup_on_star'] = $hangup_on_star;
+    $params['time_limit'] = $time_limit;
     $params['caller_id'] = $caller_id;
     $this->commands[] = new VoipCommand('VoipCmdDial', $params);
   }
@@ -147,6 +147,18 @@ class VoipScript {
 
   function addHangup() {
     $this->commands[] = new VoipCommand('VoipCmdHangup');
+  }
+
+  function addJoinConference($room, $muted=FALSE, $beep=FALSE, $start_on_enter=TRUE, $end_on_exit=FALSE, $wait_url='', $hangup_on_star=false, $time_limit=3600) {
+    $params['room'] = $room;
+    $params['muted'] = $muted;
+    $params['beep'] = $beep;
+    $params['start_on_enter'] = $start_on_enter;
+    $params['end_on_exit'] = $end_on_exit;
+    $params['wait_url'] = $wait_url;
+    $params['hangup_on_star'] = $hangup_on_star;
+    $params['time_limit'] = $time_limit;
+    $this->commands[] = new VoipCommand('VoipCmdJoinConference', $params);
   }
 
   function addLabel($label_name) {
