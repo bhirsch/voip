@@ -9,7 +9,7 @@
  *
  * @return FALSE in case of failure, or the script array in case of success
  */
-function _voipscriptui_get_weather_report() {
+function _voipscriptsamples_get_weather_report() {
 
   $script = new VoipScript('voipscript_weather_report');
 
@@ -35,7 +35,7 @@ function _voipscriptui_get_weather_report() {
   $script->addGotoIf('invalid_zip', "^%input_digits == '" . VoipScript::NO_INPUT . "'");
 
   // get the report
-  $script->addSet('forecast_result', '^_voipscriptui_get_forecast(%zip_code)');
+  $script->addSet('forecast_result', '^_voipscriptsamples_get_forecast(%zip_code)');
 
   // process invalid input
   $script->addGotoIf('invalid_zip', '^is_null(%forecast_result)');
@@ -86,19 +86,19 @@ function _voipscriptui_get_weather_report() {
 /**
  * Return string with weather report for given zip code
  */
-function _voipscriptui_get_forecast($zip) {
+function _voipscriptsamples_get_forecast($zip) {
 
 watchdog('forecast', "zip: $zip");
 
   $forecast = NULL;
 
-  $woeid = _voipscriptui_getWoeidFromZip($zip);
+  $woeid = _voipscriptsamples_getWoeidFromZip($zip);
   if(!$woeid) {
     // invalid zip code
   }
   else {
     $unit = 'f';
-    $info = _voipscriptui_get_weather_info($woeid, $unit);
+    $info = _voipscriptsamples_get_weather_info($woeid, $unit);
     if(!$info) {
       // processing error
     }
@@ -125,7 +125,7 @@ watchdog('forecast', "zip: $zip");
  * @param $unit, string with either 'c' for Celsius or 'f' for Fahrenheit
  */
 
-function _voipscriptui_get_weather_info($woeid, $unit='f') {
+function _voipscriptsamples_get_weather_info($woeid, $unit='f') {
   require_once('class.xml.parser.php');
 
   $yahoo_url = "http://weather.yahooapis.com/forecastrss?w=$woeid&u=$unit";
@@ -183,7 +183,7 @@ function _voipscriptui_get_weather_info($woeid, $unit='f') {
  *
  * Note: This function is based on http://arguments.callee.info/2010/03/26/convert-zip-code-to-yahoo-woeid/
  */
-function _voipscriptui_getWoeidFromZip($zip) {
+function _voipscriptsamples_getWoeidFromZip($zip) {
   static $woeidFromZip = array();
 
   $woeid = $woeidFromZip[$zip];
