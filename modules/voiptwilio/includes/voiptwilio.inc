@@ -413,19 +413,20 @@ watchdog('voiptwilio', $msg, array(), WATCHDOG_INFO);
           $time_limit = $script->evalString($cmd->getParam('time_limit', '3600'));
           $response .= '<Dial action="' . $action
                             . '" method="' . $method
-                            . '" muted="' . $muted
+                            . '" hangupOnStar="' . $hangup_on_star
+                            . '" timeLimit="' . $time_limit
+                            . '" >';
+          $response .= '<Conference muted="' . $muted
                             . '" beep="' . $beep
                             . '" startConferenceOnEnter="' . $start_on_enter
                             . '" endConferenceOnExit="' . $end_on_exit
                             . '" waitUrl="' . $wait_url
-                            . '" hangupOnStar="' . $hangup_on_star
-                            . '" timeLimit="' . $time_limit
                             . '" >';
           $response .= $room;
+          $response .= '</Conference>';
           $response .= '</Dial>';
           $rc = TRUE;
           $processing = FALSE;
-watchdog('voiptwilio', "New response: $response");
           break;
 
         case 'VoipCmdLabel':
