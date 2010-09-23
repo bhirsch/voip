@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Helper to implementation of hook_content_default_fields().
+ * Implementation of hook_content_default_fields().
  */
-function _voipcall_content_default_fields() {
+function voipcall_content_default_fields() {
   $fields = array();
 
   // Exported field: field_voipcall_call_id
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_call_id'] = array(
     'field_name' => 'field_voipcall_call_id',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -57,7 +57,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_caller_name
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_caller_name'] = array(
     'field_name' => 'field_voipcall_caller_name',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -111,7 +111,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_caller_number
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_caller_number'] = array(
     'field_name' => 'field_voipcall_caller_number',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -161,7 +161,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_dest_name
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_dest_name'] = array(
     'field_name' => 'field_voipcall_dest_name',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -211,7 +211,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_dest_number
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_dest_number'] = array(
     'field_name' => 'field_voipcall_dest_number',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -261,7 +261,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_duration
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_duration'] = array(
     'field_name' => 'field_voipcall_duration',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -315,7 +315,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_end_time
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_end_time'] = array(
     'field_name' => 'field_voipcall_end_time',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -374,7 +374,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_error_message
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_error_message'] = array(
     'field_name' => 'field_voipcall_error_message',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -428,7 +428,7 @@ function _voipcall_content_default_fields() {
   );
 
   // Exported field: field_voipcall_hangup_script
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_hangup_script'] = array(
     'field_name' => 'field_voipcall_hangup_script',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -486,7 +486,7 @@ The only events that do not activate the hangup script are the ones that lead to
   );
 
   // Exported field: field_voipcall_process_response
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_process_response'] = array(
     'field_name' => 'field_voipcall_process_response',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -540,7 +540,7 @@ The only events that do not activate the hangup script are the ones that lead to
   );
 
   // Exported field: field_voipcall_script
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_script'] = array(
     'field_name' => 'field_voipcall_script',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -590,7 +590,7 @@ The only events that do not activate the hangup script are the ones that lead to
   );
 
   // Exported field: field_voipcall_source
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_source'] = array(
     'field_name' => 'field_voipcall_source',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -641,7 +641,7 @@ The only events that do not activate the hangup script are the ones that lead to
   );
 
   // Exported field: field_voipcall_start_time
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_start_time'] = array(
     'field_name' => 'field_voipcall_start_time',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -700,7 +700,7 @@ The only events that do not activate the hangup script are the ones that lead to
   );
 
   // Exported field: field_voipcall_status
-  $fields[] = array(
+  $fields['voipcall-field_voipcall_status'] = array(
     'field_name' => 'field_voipcall_status',
     'type_name' => 'voipcall',
     'display_settings' => array(
@@ -750,22 +750,21 @@ The only events that do not activate the hangup script are the ones that lead to
   );
 
   // Translatables
-  array(
-    t('Call Id'),
-    t('Call Source'),
-    t('Call Status'),
-    t('Caller Name'),
-    t('Caller Number'),
-    t('Destination Name'),
-    t('Destination Number'),
-    t('Duration'),
-    t('End time'),
-    t('Error Message'),
-    t('Hangup Script'),
-    t('Process Response'),
-    t('Script'),
-    t('Start time'),
-  );
+  // Included for use with string extractors like potx.
+  t('Call Id');
+  t('Call Source');
+  t('Call Status');
+  t('Caller Name');
+  t('Caller Number');
+  t('Destination Name');
+  t('Destination Number');
+  t('Duration');
+  t('End time');
+  t('Error Message');
+  t('Hangup Script');
+  t('Process Response');
+  t('Script');
+  t('Start time');
 
   return $fields;
 }
