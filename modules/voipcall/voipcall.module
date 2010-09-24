@@ -15,6 +15,7 @@ foreach (array('voipcall.features.inc', 'voipscript.inc') as $file) {
  * Constants
  */
 
+// TODO: move the following constants to VoipScript
 /**
  * Possible status of a call
  */

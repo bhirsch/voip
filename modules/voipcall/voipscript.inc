@@ -8,31 +8,95 @@
  */
 
 
-/**
+/*
  * Class definitions
  */
 
         
+/*
+ * Class that keeps track of both the commands as well as the current status of 
+ * a Voip Script
+ */
 class VoipScript {
+  
+  // Script variables
+
+  /**
+   * Script name
+   */
   private $name;
-  private $commands;
-  private $index; // index of the current command
-  private $variables; 
-  private $stack; // stack of active subroutines 
+
+  /**
+   * Array of script commands
+   */
+  private $commands; 
+
+  /**
+   * Index of the next command to be executed
+   */
+  private $index; // index of the next command to be executed
+
+  /**
+   * Script variables
+   */
+  private $variables;
+
+  /**
+   * Stack of scripts being executed via gosub commands.
+   *
+   * Each element of the array stores the current status of a script,
+   * including name, commands, and command index
+   */
+  private $stack;
+
+  /**
+   * Flag indicating script execution error
+   */
   protected $is_error;
+
+  /**
+   * Script error message
+   */
   protected $error_message;
-            
+
   /*
    * Constants
    */
 
+  /* 
+   * Possible status of a call
+   */
+
+  const ERROR='processing_error';
+  const NOT_CALLED='not_called'; // the call has yet to be called
+  const DIALING='dialing'; // the call is being connected/requested
+  const NO_ANSWER='no_answer';
+  const BUSY='busy';
+  const INVALID='invalid_number';
+  const IN_PROGRESS='in_progress'; // the call is in progress
+  const ANSWERED_MACHINE='answered_by_machine';
+  const ANSWERED_HUMAN='answered_by_human';
+  const MACHINE_HANGUP='machine_hangup'; // call hangup due to machine pickup
+  const COMPLETED='completed';
+
+
+  /**
+   * Indicator of no keypad input received
+   */
   const NO_INPUT='no_input';
 
 
-  /*
-   * Constructors
+  /**
+   * VoipScript constructor
+   *
+   * @param $name 
+   *   A string containing the name of the new script
+   * @param $variables 
+   *   An array with the initial value of the script variables
+   *
+   * @return
+   *  The new script created
    */
-
   function __construct($name, $variables=array()) {
     $this->name = $name;
     $this->commands = array();
@@ -43,6 +107,17 @@ class VoipScript {
     $this->error_message = NULL;
   }
 
+  /**
+   * Returns a new instance of an already-existing script
+   *
+   * @param $script_name
+   *   String containing the name of the script to be loaded
+   * @param array $params
+   *   Array with the value pairs to be passed to hook_voipscript_load_script()
+   *
+   * @return
+   *   The new script instance, or NULL in case of invalid script name
+   */
   public static function loadScript($script_name, $params = NULL){
     $rc = NULL;
     $script_tmp = new VoipScript($script_name);
@@ -58,46 +133,82 @@ class VoipScript {
    * Public methods
    */
 
+  /**
+   * Returns the script name
+   */
   function getName() {
     return $this->name;
   }
 
+  /**
+   * Returns the value of the specified script variable
+   */
   function getVar($name) {
     return $this->variables[$name];
   }
 
+  /**
+   * Sets the value of the specified script variable
+   */
   function setVar($name, $value) {
     $this->variables[$name] = $value;
   }
 
+  /**
+   * Unsets the specified script variable
+   */
   function unsetVar($name) {
     unset($this->variables[$name]);
   }
 
 
-  // Methods used during script execution
+  /*
+   * Methods used during script execution
+   */
 
+  /**
+   * Returns the next script command to be executed
+   */
   function getNextCommand() {
     $cmd = $this->commands[$this->index];
     $this->index++;
     return $cmd;
   }
 
+  /**
+   * Resets the script index
+   */
   function resetIndex() {
     $this->index = 0;
   }
 
-
-  // Evaluate the given string based on the current value of script variables.
+  /**
+   * Evaluates the given string based on the current value of script variables.
+   *
+   * @param $string
+   *   The string to be evaluated
+   *
+   * @return 
+   *   The result of the evaluation
+   *
+   * @see _voipscript_expand_variables() for the actual syntax allowed in the 
+   *   string to be evaluated
+   */
   function evalString($string) {
     $rc = _voipscript_expand_variables($string, $this->variables);
     return $rc;
   }
 
+  /**
+   * Returns TRUE in case a script processing error has been detected
+   */
   function isError(){
     return $this->is_error;
   }
 
+  /**
+   * Retuns the message associated with a script error.
+   */
   function getErrorMessage() {
     return $this->error_message;
   }
@@ -106,6 +217,34 @@ class VoipScript {
    * Supported script commands
    */
 
+  /**
+   * Adds a "dial" command to the script.
+   *
+   * When executed, the 'dial' command connects the current caller to another
+   * phone. If the called party picks up, the two parties are connected and
+   * can communicate until one hangs up. If the called party does not pick up,
+   * or if a busy signal is received, or the number doesn't exist, the dial
+   * command will finish.
+   * TODO: Upon completion, the 'dial' command might set the following {@link variables}: (add @uses in here?)
+   * TODO: DON'T FORGET to move the status constants into VoipScript...
+   *
+   * @param $number
+   *   String with a valid number to be dialed
+   * @param $timeout
+   *   Integer with the number of seconds to wait for the called party to
+   *   answer the call
+   * @param $hangup_on_star
+   *   If TRUE, lets the calling party hang up on the called party by pressing
+   *   the '*' key on his phone. This feature allows the calling party to hang
+   *   up on the called party without having to hang up the phone and end the
+   *   session. When the caller presses '*' Voip Drupal will hang up on the
+   *   called party and will move on to execute the next command in the script.
+   * @param $time_limit
+   *   Integer with the maximum duration of the call in seconds
+   * @param $caller_id
+   *   String with the caller id to be used for the call. By default, this is
+   *   the caller id defined in the 'default call configuration' settings
+   */
   function addDial($number, $timeout=30, $hangup_on_star=false, $time_limit=3600, $caller_id=''){
     $params['number'] = $number;
     $params['timeout'] = $timeout;
@@ -116,9 +255,29 @@ class VoipScript {
   }
 
   /*
-   * Read input from phone keypad
+   * Adds a 'get input' command to the script. 
    *
-   * out: variable input_digits set to input or to VoipScrip::NO_INPUT
+   * When executed, the 'get input' command reads user input from the phone
+   * keypad. The system stops reading the input whenever there is a
+   * timeout, the user presses a predefined key, or the users presses the
+   * maximum number of digits expected.
+   *
+   * @param $text 
+   *   String with the prompt to be read asking the user to type something
+   * @param $url
+   *   String with the url of an mp3 or wav file to be played to the user
+   *   asking her to input something. This parameter is only used in case
+   *   the parameter $text is not provided
+   * @param $timeout
+   *   Integer specifying the maximum number of seconds to wait in between
+   *   digits
+   * @param $end_key
+   *   Key used to end the data input. The allowed values are the numbers 0-9,
+   *   # , * and the empty string.
+   * @param $num_digits
+   *   Integer with the number of digits that are expected.
+   *
+   * TODO: out: variable input_digits set to input or to VoipScrip::NO_INPUT
    */
   function addGetInput($text='', $url='', $timeout=5, $end_key='#', $num_digits=NULL) {
     $params['text'] = $text;
@@ -129,22 +288,65 @@ class VoipScript {
     $this->commands[] = new VoipCommand('VoipCmdGetInput', $params);
   }
 
+  /**
+   * Adds a "gosub" command to the script.
+   *
+   * When executed, the 'gosub' command saves the state of the current script
+   * into the local stack and loads the commands and variables of specified
+   * script.
+   * 
+   * @param $script_name
+   *   The name of the script to be loaded
+   *
+   * @see VoipScript::addReturn()
+   */
   function addGosub($script_name) {
     $params['script_name'] = $script_name;
     $this->commands[] = new VoipCommand('VoipCmdGosub', $params);
   }
 
+  /** 
+   * Adds a "go to" command to the script.
+   * 
+   * When ran, the 'go to' command updates the index of the script and skips
+   * the script execution to the command that follows the specified label.
+   *
+   * @param $label_name
+   *   String with the name of the label to go to.
+   *
+   * @see VoipScript::addLabel()
+   * @see VoipScript::addGotoIf()
+   */ 
   function addGoto($label_name) {
     $params['label_name'] = $label_name;
     $this->commands[] = new VoipCommand('VoipCmdGoto', $params);
   }
 
+  /**
+   * Adds a 'goto if' command to the script.
+   *
+   * This command is similar to VoipScript:addGoto(). However, it only goes to
+   * the specified label in case the specified condition evaluates to TRUE.
+   *
+   * @param $label_name
+   *   String with the name of the label to go to.
+   * @param $condition
+   *   If TRUE, skips script execution to the specified label.
+   *
+   * @see VoipScript::addLabel()
+   * @see VoipScript::addGoto()
+   */
   function addGotoIf($label_name, $condition) {
     $params['label_name'] = $label_name;
     $params['condition'] = $condition;
     $this->commands[] = new VoipCommand('VoipCmdGotoIf', $params);
   }
 
+  /**
+   * Adds a 'hangup' command to the script.
+   *
+   * When executed, the 'hangup' command ends the call.
+   */
   function addHangup() {
     $this->commands[] = new VoipCommand('VoipCmdHangup');
   }
