@@ -67,22 +67,15 @@ function voiptwilio_menu() {
   $items['voip/twilio/callhandler'] = array(
     'title' => 'Voip Twilio call handler',
     'description' => 'Handles incoming calls from Twilio.',
-    'access arguments' => array('make inbound calls'), // Note: Since we cannot
-                                       // check users before they call in, it's
-                                       // important that anonymous users be
-                                       // able to make inbound calls
+      // Note: Since both incoming calls and Twilio responses are received
+      // via the same callhandler menu, the specific call permissions are to 
+      // be checked inside the call handler function itself.
+    'access callback' => TRUE, 
     'page callback' => '_voiptwilio_call_handler',
     'type' => MENU_CALLBACK,
   );
 
   return $items;
-}
-
-/*
- * Implementation of hook_perm()
- */
-function voiptwilio_perm() {
-  return array('make inbound calls', 'make outbound calls');
 }
 
 

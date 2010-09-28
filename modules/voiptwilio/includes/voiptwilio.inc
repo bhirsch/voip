@@ -49,6 +49,25 @@ $vars = array();
 
   // handle incoming call requests
   if(!$call_id) {
+
+    // make sure incoming calls are allowed in the system
+    // NOTE: Since incoming calls always arrive with anonymous user, make sure
+    //   that anonymous users have permission to make inbound calls
+    $allowed = user_access('make inbound calls');
+    if(!$allowed) {
+      // log the issue
+      $msg = 'Unauthorized call received with AccountSid: @sid';
+      $params = array('@sid' => $incoming_sid);
+      watchdog('voiptwilio', $msg, $params, WATCHDOG_WARNING);
+
+      // notify the caller
+      $text = t('I am sorry, but incoming calls are not allowed in this system.');
+      $response = "<Say>$text</Say><Hangup/>";
+      $rc = _voiptwilio_send_response($response);
+      return;  // NOTE: this function MUST not return any value.  If it does,
+               // the output to Twilio will get messed up with Drupal hmtl...
+    }
+    
     $call = array();
     $call_guid = $_REQUEST['CallGuid']; // unique identifier of the call, 34 char
     $call['call_id'] = $call_guid;

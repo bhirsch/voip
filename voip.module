@@ -79,7 +79,7 @@ function voip_menu() {
  * Implementation of hook_perm().
  */
 function voip_perm() {
-  return array('administer voip drupal framework');
+  return array('administer voip drupal framework', 'make outbound calls', 'make inbound calls');
 }
 
 
