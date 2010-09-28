@@ -14,8 +14,22 @@ foreach (array('voip_error.inc', 'voipserver.inc', 'voiplogserver.inc') as $file
 
 /**
  * Make a phone call
+ *
+ * @param object $voipcall with the information about the call to be made
+ *
+ * @return boolean with TRUE in case of success or FALSE otherwise
  */
 function voip_dial($voipcall) {
+  // make sure the user is allowed to make outbound calls
+  $allowed = user_access('make outbound calls');
+  if(!$allowed) {
+    global $user;
+    $variables['%uid'] = $user->uid;
+    $msg = 'User %uid does not have permissions to make outbound calls.';
+    watchdog('voip', $msg, $variables, WATCHDOG_WARNING);
+    return FALSE;
+  }
+
   if(is_object($voipcall)){
     $voipcall = (array)$voipcall;
   }
